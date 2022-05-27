@@ -14,8 +14,8 @@ for t in untasks do
   
   if system(ruby script_name.rb)
     ##delete from this collection, and insert on tasks_log
-    client[:tasks_log].insert_on(t.exclude(:_id))
-    tasks.find(:_id => t[:_id].delete_one
+    client[:tasks_log].insert_one(tasks.find(:_id => t[:_id]).find_one_and_delete)
+    
     
   else  
     ### increment count_erros,
