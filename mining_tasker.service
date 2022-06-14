@@ -7,7 +7,9 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-ExecStart=mining_tasker.sh
+User=orangepi
+WorkingDirectory=/home/orangepi/MininTasker/
+ExecStart=/home/orangepi/.rvm/wrappers/default/bundle exe ruby main.rb
 
 [Install]
 WantedBy=multi-user.target

@@ -4,4 +4,6 @@ source "https://rubygems.org"
 
 # gem "rails"
 gem "mongo", "~> 2"
-gem "byebug"
+#gem "byebug"
+gem "selenium-webdriver"
+
