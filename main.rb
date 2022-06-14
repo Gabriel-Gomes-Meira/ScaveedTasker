@@ -1,5 +1,3 @@
-begin
-
 require "mongo"
 
 client = Mongo::Client.new([ '127.0.0.1:27017' ],
@@ -15,17 +13,17 @@ for t in un_tasks do
     ##capture all output for log
         
     require_relative "scripts/#{t[:file_name]}"
-    result = run
-    if result[:success] ### the line from output
+    
+    if run ### the line from output
       ##delete from this collection, and insert on tasks_log
       client[:tasks_log].insert_one(tasks.find(:_id => t[:_id]).find_one_and_delete)    
       client[:tasks_log].update_one({:_id => t[:_id]},                       
-                       { "$set" => { :log => result[:outputs]} })
+                       { "$set" => { :log => $log} })
     else
       ### increment count_erros,
       tasks.update_one({:_id => t[:_id]},
                        { "$inc" => { :count_erro => 1} },
-                       { "$set" => { :log => result[:outputs]} })
+                       { "$set" => { :log => $log} })
     
     end  
   else
@@ -33,10 +31,4 @@ for t in un_tasks do
                          { "$inc" => { :count_erro => 1} },
                          { "$set" => { :log => "Arquivo (scripts/#{t[:file_name]}) nao foi encontrado!"} }) 
   end
-end
-
-rescue StandardError => e
- 	f = File.new("log", "w")
-	f.write(e.full_message)
-	f.close
 end
