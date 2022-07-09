@@ -31,4 +31,3 @@ for t in un_tasks do
                      { "$inc" => { :count_erro => 1} } )
   end
 end
-
