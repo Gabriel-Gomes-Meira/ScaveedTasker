@@ -10,24 +10,36 @@ un_tasks = tasks.find({}).sort(updated_at:-1) ### getting all task's documents s
 for t in un_tasks do
 
   ## Criar arquivo pronto para logar e executar
-  content = ['$log = ""', 'def run', 'begin', '$log = "==============Iniciando execução=================\n\n"']
+  content = ['$log = ""', 'def run', '$log = "==============Iniciando execução=================\n\n"']
   content = content + t[:content]
   content.push('return true', 'rescue StandardError => e',
-               '$log += e.full_message', 'return false', 'end', 'end')
+               '$log += e.full_message', 'return false', 'end')
   file = File.new(t[:file_name], "w")
-  file.write(content.join)
+  file.write(content.join("\n"))
   file.close
-  require_relative t[:file_name]
-
-  if run
-      ##delete from this collection, and insert on tasks_log
-      client[:tasks_log].insert_one(tasks.find(:_id => t[:_id]).find_one_and_delete)
-      client[:tasks_log].update_one({:_id => t[:_id]},
-                                    { "$set" => { :log => $log} })
-  else
-    ### increment count_erros,
+  begin
+    require_relative t[:file_name]
     tasks.update_one({:_id => t[:_id]},
-                     { "$set" => { :log => $log} },
-                     { "$inc" => { :count_erro => 1} } )
+                    { "$set" => { :state => 1} })
+    if run
+        ##delete from this collection, and insert on tasks_log
+        client[:tasks_log].insert_one(tasks.find(:_id => t[:_id]).find_one_and_delete)
+        client[:tasks_log].update_one({:_id => t[:_id]},
+                                      { "$set" => { :log => $log, :state => 2 } })
+    else
+      ### increment count_erros,
+      tasks.update_one({:_id => t[:_id]},
+                      { "$set" => { :log => $log, :state => 0} },
+                      { "$inc" => { :count_erro => 1} } )
+    end
+  rescue StandardError => e
+    tasks.update_one({:_id => t[:_id]},
+                    { "$set" => { :log => e.full_message, :state => 0} },
+                    { "$inc" => { :count_erro => 1} } )
+  rescue SyntaxError => e
+    tasks.update_one({:_id => t[:_id]},
+                    { "$set" => { :log => e.full_message, :state => 0} },
+                    { "$inc" => { :count_erro => 1} } )
   end
+  `rm #{t[:file_name]}`
 end
