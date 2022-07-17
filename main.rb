@@ -6,9 +6,9 @@ client = Mongo::Client.new([ '127.0.0.1:27017' ],
 db = client.database                         
 tasks = db[:queued_tasks]  ### getting "Queued Task" Collection, where will be my, still not completed, tasks.
  
-un_tasks = tasks.find({}).sort(updated_at:-1) ### getting all task's documents sorted by last updated time.
-while task.find({}).sort(updated_at:1).first
-  t = task.find({}).sort(updated_at:1).first
+### getting all task's documents sorted by last updated time.
+while tasks.find({}).sort(updated_at:1).first
+  t = tasks.find({}).sort(updated_at:1).first
   ## Criar arquivo pronto para logar e executar
   content = ['$log = ""', 'def run', '$log = "==============Iniciando execução=================\n\n"']
   content = content + t[:content]
@@ -22,27 +22,31 @@ while task.find({}).sort(updated_at:1).first
   begin
     require_relative t[:file_name]
     tasks.update_one({:_id => t[:_id]},
-                    { "$set" => { :state => 1, :initialized_at => Time.now} })
+                    { "$set" => { :state => 1, :initialized_at => Time.new} })
     if run
         ##delete from this collection, and insert on tasks_log
         client[:tasks_log].insert_one(tasks.find(:_id => t[:_id]).find_one_and_delete)
         client[:tasks_log].update_one({:_id => t[:_id]},
-                                      { "$set" => { :log => $log, :state => 2, :terminated_at => Time.now } })
+                                      { "$set" => { :log => $log, :state => 2, :terminated_at => Time.new } })
     else
       ### increment count_erros,
       tasks.update_one({:_id => t[:_id]},
-                      { "$set" => { :log => $log, :state => 0, :updated_at => Time.now} },
-                      { "$inc" => { :count_erro => 1} } )
+                      { "$set" => { :log => $log, :state => 0, :updated_at => Time.new},
+                       "$inc" => { :count_erro => 1} } )
     end
     
   rescue StandardError => e
     tasks.update_one({:_id => t[:_id]},
-                    { "$set" => { :log => e.full_message, :state => 0, :updated_at => Time.now} },
-                    { "$inc" => { :count_erro => 1} } )
+                    { "$set" => { :log => e.full_message, :state => 0, :updated_at => Time.new},
+                     "$inc" => { :count_erro => 1} } )
   rescue SyntaxError => e
     tasks.update_one({:_id => t[:_id]},
-                    { "$set" => { :log => e.full_message, :state => 0, :updated_at => Time.now} },
-                    { "$inc" => { :count_erro => 1} } )
+                    { "$set" => { :log => e.full_message, :state => 0, :updated_at => Time.new},
+                      "$inc" => { :count_erro => 1} } )
+  rescue LoadError => e
+    tasks.update_one({:_id => t[:_id]},
+                    { "$set" => { :log => e.full_message, :state => 0, :updated_at => Time.new},
+                     "$inc" => { :count_erro => 1}}  )
   end
 
   File.delete(t[:file_name])
