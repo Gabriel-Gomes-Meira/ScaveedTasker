@@ -12,12 +12,14 @@ while tasks.find({}).sort(updated_at:1).first
   ## Criar arquivo pronto para logar e executar
   content = ['$log = ""', 'def run', '$log = "==============Iniciando execução=================\n\n"']
   content = content + t[:content]
-  content.push('$log = "==============Terminando execução=================\n\n"',
+  content.push('$log += "==============Terminando execução=================\n\n"',
                'return true', 'rescue StandardError => e', '$log += e.full_message',
                'return false', 'end')
+
   file = File.new(t[:file_name], "w")
   file.write(content.join("\n"))
   file.close
+  path_creation = `#{Dir::getwd}/#{t[:file_name]}`
 
   begin
     require_relative t[:file_name]
@@ -49,5 +51,5 @@ while tasks.find({}).sort(updated_at:1).first
                      "$inc" => { :count_erro => 1}}  )
   end
 
-  File.delete(t[:file_name])
+  `rm #{path_creation}`
 end
