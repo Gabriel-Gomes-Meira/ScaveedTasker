@@ -1,25 +1,26 @@
 require "mongo"
 
+servicewd = Dir::getwd  ##getting working directory to grant that anyone script will be executed on main work directory's service.
 client = Mongo::Client.new([ '127.0.0.1:27017' ],
                            :database => 'mining_net_development')
                            
 db = client.database                         
 tasks = db[:queued_tasks]  ### getting "Queued Task" Collection, where will be my, still not completed, tasks.
- 
+
 ### getting all task's documents sorted by last updated time.
 while tasks.find({}).sort(updated_at:1).first
   t = tasks.find({}).sort(updated_at:1).first
-  ## Criar arquivo pronto para logar e executar
+  ## Criar arquivo pronto para logar e executar, no diretório de execução
   content = ['$log = ""', 'def run', '$log = "==============Iniciando execução=================\n\n"']
   content = content + t[:content]
   content.push('$log += "==============Terminando execução=================\n\n"',
                'return true', 'rescue StandardError => e', '$log += e.full_message',
                'return false', 'end')
-
+  Dir::chdir(servicewd)
   file = File.new(t[:file_name], "w")
   file.write(content.join("\n"))
   file.close
-  path_creation = `#{Dir::getwd}/#{t[:file_name]}`
+  path_creation = "#{servicewd}/#{t[:file_name]}"
 
   begin
     require_relative t[:file_name]
@@ -51,5 +52,6 @@ while tasks.find({}).sort(updated_at:1).first
                      "$inc" => { :count_erro => 1}}  )
   end
 
+  ## remover arquivo após uso.
   `rm #{path_creation}`
 end
