@@ -2,6 +2,6 @@
 
 source "https://rubygems.org"
 
-# gem "rails"
-gem "mongo", "~> 2"
+gem "pg"
+gem "sequel"
 gem "selenium-webdriver"
