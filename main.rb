@@ -1,8 +1,8 @@
-require "pg"
+require "sqlite3"
 require "sequel"
 
 servicewd = Dir::getwd  ##getting working directory to grant that anyone script will be executed on main work directory's service.
-db = Sequel.connect('postgres://postgres:password@db/scaveed')
+db = Sequel.connect('sqlite://database/scaveed_development.db')
                            
                          
 tasks = db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, still not completed, tasks.
