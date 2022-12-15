@@ -1,16 +1,15 @@
-require "sqlite3"
+require "pg"
 require "sequel"
 
 servicewd = Dir::getwd  ##getting working directory to grant that anyone script will be executed on main work directory's service.
-db = Sequel.connect('sqlite://database/scaveed_development.db')
+db = Sequel.connect('postgres://postgres:password@db/scaveed_development')
 
 
 tasks = db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, still not completed, tasks.
 
 ### getting the first task (by updated_at)
 while tasks.order(:updated_at).first
-  sleep 60
-  db.transaction do
+  # sleep 60
     t = tasks.order(:updated_at).first
     ## Criar arquivo pronto para logar e executar, no diretório de execução
     content = ['$log = ""', 'def run', '$log = "==============Iniciando execução=================\n\n"']
@@ -57,5 +56,4 @@ while tasks.order(:updated_at).first
 
     ## remover arquivo após uso.
     `rm #{path_creation}`
-  end
 end

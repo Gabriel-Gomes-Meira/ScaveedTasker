@@ -2,6 +2,6 @@
 
 source "https://rubygems.org"
 
-gem "sqlite3"
+gem "pg"
 gem "sequel"
 gem "selenium-webdriver"
