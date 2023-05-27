@@ -1,5 +1,6 @@
 require "pg"
 require "sequel"
+require_relative 'preloader'
 
 servicewd = Dir::getwd  ##getting working directory to grant that anyone script will be executed on main work directory's service.
 db = Sequel.connect('postgres://postgres:password@db/scaveed_development')
@@ -9,10 +10,16 @@ tasks = db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, st
 
 ### getting the first task (by updated_at)
 while tasks.order(:updated_at).first
-  # sleep 60
+    $log = ""
+    # sleep 60
     t = tasks.order(:updated_at).first
+
+    ## Preparando ambiente
+    tasks.where(id: t[:id]).update(state: 1, initialized_at: Time.new)
+    prepare_enviroment(t)
+
     ## Criar arquivo pronto para logar e executar, no diretório de execução
-    content = ['$log = ""', 'def run', '$log = "==============Iniciando execução=================\n\n"']
+    content = ['def run', '$log += "==============Iniciando execução=================\n\n"']
     content += t[:content].split("\n")
     content.push('$log += "==============Terminando execução=================\n\n"',
                  'return true', 'rescue StandardError => e', '$log += e.full_message',
@@ -24,8 +31,7 @@ while tasks.order(:updated_at).first
     path_creation = "#{servicewd}/#{t[:file_name]}"
 
     begin
-      require_relative t[:file_name]
-      tasks.where(id: t[:id]).update(state: 1, initialized_at: Time.new)
+      require_relative t[:file_name]      
 
       if run
         ##delete from this table, and insert on tasks_log
