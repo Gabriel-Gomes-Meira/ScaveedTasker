@@ -1,7 +1,7 @@
 
-def output_log(connection, task, log)
-    $log += log    
-    connection[:queued_tasks].where(id: task[:id]).update(updated_at: Time.new, log: $log)
+def output_log(log)
+    $log += log+"\n"    
+    $db[:queued_tasks].where(id: $curr_id_task).update(updated_at: Time.new, log: $log)
 end
 
 def prepare_enviroment(task)
