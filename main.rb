@@ -22,7 +22,7 @@ while tasks.order(:updated_at).first
     content = ['def run', '$log += "==============Iniciando execução=================\n\n"']
     content += t[:content].split("\n")
     content.push('$log += "==============Terminando execução=================\n\n"',
-                 'return true', 'rescue StandardError => e', '$log += e.full_message',
+                 'return true', 'rescue StandardError => e', '$log = e.full_message',
                  'return false', 'end')
     Dir::chdir(servicewd)
     file = File.new(t[:file_name], "w")
@@ -41,20 +41,20 @@ while tasks.order(:updated_at).first
         tasks.where(id: t[:id]).delete
       else
         ### increment count_erros
-        tasks.where(id: t[:id]).update(log: $log, state: 0, updated_at: Time.new,
+        tasks.where(id: t[:id]).update(message_error: $log, state: 0, updated_at: Time.new,
                                        count_erro: t[:count_erro]+1)
       end
 
     rescue StandardError => e
-      tasks.where(id: t[:id]).update(log: e.full_message, state: 0, updated_at: Time.new,
+      tasks.where(id: t[:id]).update(message_error: e.full_message, state: 0, updated_at: Time.new,
                                      count_erro: t[:count_erro]+1)
 
     rescue SyntaxError => e
-      tasks.where(id: t[:id]).update(log: e.full_message, state: 0, updated_at: Time.new,
+      tasks.where(id: t[:id]).update(message_error: e.full_message, state: 0, updated_at: Time.new,
                                      count_erro: t[:count_erro]+1)
 
     rescue LoadError => e
-      tasks.where(id: t[:id]).update(log: e.full_message, state: 0, updated_at: Time.new,
+      tasks.where(id: t[:id]).update(message_error: e.full_message, state: 0, updated_at: Time.new,
                                      count_erro: t[:count_erro]+1)
 
 
