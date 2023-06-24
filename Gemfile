@@ -4,3 +4,4 @@ source "https://rubygems.org"
 
 gem "pg"
 gem "sequel"
+gem 'open3'

@@ -11,9 +11,11 @@ tasks = $db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, s
 ### getting the first task (by updated_at)
 while tasks.order(:updated_at).first
     $log = ""
+    
     # sleep 60
     t = tasks.order(:updated_at).first
     $curr_id_task = t[:id]
+
 
     ## Preparando ambiente
     tasks.where(id: t[:id]).update(state: 1, initialized_at: Time.new)
@@ -38,7 +40,7 @@ while tasks.order(:updated_at).first
         ##delete from this table, and insert on tasks_log
         t[:terminated_at] = Time.new
         t[:log]  = $log
-        db[:log_tasks].insert(t.except(:id))
+        $db[:log_tasks].insert(t.except(:id))
         tasks.where(id: t[:id]).delete
       else
         ### increment count_erros
