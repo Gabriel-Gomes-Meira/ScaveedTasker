@@ -3,16 +3,19 @@ require "sequel"
 require_relative 'preloader'
 
 servicewd = Dir::getwd  ##getting working directory to grant that anyone script will be executed on main work directory's service.
-db = Sequel.connect('postgres://postgres:password@db/scaveed_development')
+$db = Sequel.connect('postgres://postgres:password@db/scaveed_development')
 
 
-tasks = db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, still not completed, tasks.
+tasks = $db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, still not completed, tasks.
 
 ### getting the first task (by updated_at)
 while tasks.order(:updated_at).first
     $log = ""
+    
     # sleep 60
     t = tasks.order(:updated_at).first
+    $curr_id_task = t[:id]
+
 
     ## Preparando ambiente
     tasks.where(id: t[:id]).update(state: 1, initialized_at: Time.new)
@@ -37,7 +40,7 @@ while tasks.order(:updated_at).first
         ##delete from this table, and insert on tasks_log
         t[:terminated_at] = Time.new
         t[:log]  = $log
-        db[:log_tasks].insert(t.except(:id))
+        $db[:log_tasks].insert(t.except(:id))
         tasks.where(id: t[:id]).delete
       else
         ### increment count_erros
