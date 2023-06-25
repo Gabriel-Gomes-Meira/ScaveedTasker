@@ -40,7 +40,7 @@ while tasks.order(:updated_at).first
         ##delete from this table, and insert on tasks_log
         t[:terminated_at] = Time.new
         t[:log]  = $log
-        $db[:log_tasks].insert(t.except(:id))
+        $db[:log_tasks].insert(t.except(:id, :message_error))
         tasks.where(id: t[:id]).delete
       else
         ### increment count_erros

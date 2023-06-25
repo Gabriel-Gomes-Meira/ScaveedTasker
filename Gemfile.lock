@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    open3 (0.1.2)
+    pg (1.5.3)
+    sequel (5.69.0)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  open3
+  pg
+  sequel
+
+BUNDLED WITH
+   2.3.7
