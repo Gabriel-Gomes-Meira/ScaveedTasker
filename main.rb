@@ -26,7 +26,7 @@ while tasks.order(:updated_at).first
     content = ['def run', '$log += "==============Iniciando execução=================\n\n"']
     content += t[:content].split("\n")
     content.push('$log += "==============Terminando execução=================\n\n"',
-                 'return true', 'rescue StandardError => e', '$log = e.full_message',
+                 'return true', 'rescue StandardError => e', 'output_log e.full_message',
                  'return false', 'end')
     Dir::chdir(servicewd)
     file = File.new(t[:file_name], "w")
