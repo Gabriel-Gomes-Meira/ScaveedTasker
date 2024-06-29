@@ -11,16 +11,37 @@ tasks = $db[:queued_tasks]  ### getting "Queued Task" Table, where will be my, s
 ### getting the first task (by updated_at)
 while tasks.order(:updated_at).first
     $log = ""
+    $params = nil
     
     # sleep 60
     t = tasks.order(:updated_at).first
     $curr_id_task = t[:id]
-    t[:count_erro] = 0 if t[:count_erro].nil?
-
-
+    tasks.where(id: t[:id]).update(count_erro: 0) if t[:count_erro].nil?
+    
     ## Preparando ambiente
     tasks.where(id: t[:id]).update(state: 1, initialized_at: Time.new)
     prepare_enviroment(t)
+
+    ## Preparando parametros
+    if t[:params]
+      if t[:params].split(",").length == 0
+        tasks.where(id: t[:id]).update(message_error: "Parametros mal formatados", state: 0, updated_at: Time.new, log: t[:log] + $log,
+                                        count_erro: t[:count_erro]+1)
+        next
+      end
+      params = t[:params].split(",")
+      $params = {}
+      params.each do |p|
+        # Apontar error se não conseguir splitar
+        if p.split("|").length != 2
+          tasks.where(id: t[:id]).update(message_error: "Parametros mal formatados", state: 0, updated_at: Time.new, log: t[:log] + $log,
+                                          count_erro: t[:count_erro]+1)
+          next
+        end
+        $params[p.split("|")[0]] = p.split("|")[1]
+        output_log "Parametro: #{p.split("|")[0]} = #{$params[p.split("|")[0]]}"
+      end
+    end
 
     ## Criar arquivo pronto para logar e executar, no diretório de execução
     content = ['def run', '$log += "==============Iniciando execução=================\n\n"']
