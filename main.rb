@@ -15,6 +15,7 @@ while tasks.order(:updated_at).first
     # sleep 60
     t = tasks.order(:updated_at).first
     $curr_id_task = t[:id]
+    t[:count_erro] = 0 if t[:count_erro].nil?
 
 
     ## Preparando ambiente
