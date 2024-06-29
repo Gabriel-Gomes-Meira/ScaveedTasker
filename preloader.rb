@@ -1,8 +1,10 @@
 require 'open3'
 
 def output_log(log)
-    $log += log+"\n"    
-    $db[:queued_tasks].where(id: $curr_id_task).update(updated_at: Time.new, log: $log)
+    now = Time.now
+    now = Time.new(now.year, now.month, now.day, now.hour, now.min, now.sec, "-03:00")
+    $log += "[#{now.strftime('%d/%m/%Y %H:%M:%S')}] #{log}\n"    
+    $db[:queued_tasks].where(id: $curr_id_task).update(updated_at: now, log: $log)
 end
 
 def prepare_enviroment(task)
